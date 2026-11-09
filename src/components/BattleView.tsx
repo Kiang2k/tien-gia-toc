@@ -14,7 +14,7 @@ function UnitCard({ unit, ally, onAttack }: { unit: BattleUnit; ally: boolean; o
   const card = (
     <>
       <span className="unit-icon" aria-hidden="true">{unit.icon}</span>
-      <div><b>{unit.name}</b><small>{ally ? unit.skill : unit.role}</small><div className="bar"><i style={{ width: health }} /></div><div className="status-list">{unit.statuses.map((item) => <span key={item.type}>{item.type === 'stun' ? 'Choáng' : item.type === 'slow' ? 'Chậm' : item.type === 'attackUp' ? 'Cường công' : item.type === 'shield' ? 'Hộ thể' : 'Miễn nhiễm'}</span>)}</div></div>
+      <div><b>{unit.name}</b><small>{ally ? unit.skill : unit.role}</small><div className="bar"><i style={{ width: health }} /></div><div className="speed-meter" title={`Tốc độ ${unit.speed}`}><i style={{ width: `${Math.min(100, unit.speed / 1.4)}%` }} /></div><div className="status-list">{unit.statuses.map((item) => <span key={item.type}>{item.type === 'stun' ? 'Choáng' : item.type === 'slow' ? 'Chậm' : item.type === 'attackUp' ? 'Cường công' : item.type === 'shield' ? 'Hộ thể' : 'Miễn nhiễm'}</span>)}</div></div>
     </>
   )
   return ally ? <button className="unit-card ally" disabled={unit.currentHp <= 0} onClick={onAttack}>{card}</button> : <div className={`unit-card enemy ${unit.currentHp <= 0 ? 'defeated' : ''}`}>{card}</div>
