@@ -39,16 +39,18 @@ export function BattleView({ battle, onAttack, onSkill, onPause, onToggleAuto, o
   const effectType = latestLog.includes('BẠO KÍCH') ? 'critical' : latestLog.includes('né') ? 'dodge' : latestLog.includes('gây') ? 'hit' : 'idle'
   const activeAlly = battle.allies.find((unit) => unit.currentHp > 0)
   const activeEnemy = battle.foes.find((unit) => unit.currentHp > 0)
+  const actor = [...battle.allies, ...battle.foes].find((unit) => latestLog.startsWith(unit.name))
+  const effectAsset = actor?.element === 'Hỏa' ? assetManifest.effects.fire : actor?.element === 'Thủy' ? assetManifest.effects.water : actor?.element === 'Mộc' ? assetManifest.effects.wood : actor?.element === 'Lôi' ? assetManifest.effects.lightning : actor?.element === 'Thổ' ? assetManifest.effects.earth : actor?.element === 'Quang' ? assetManifest.effects.light : assetManifest.effects.dark
 
   return (
     <section className="battle-board fade-in">
       <div className="battle-heading"><div><p className="eyebrow">BÍ CẢNH • TẦNG 03 • LƯỢT {battle.turnNumber}</p><h2>Thí luyện Ma Uyên <span className="build-badge">CINEMATIC 0.4</span></h2></div><div className="battle-controls"><span className="turn-chip">{battle.phase === 'player' ? 'LƯỢT CỦA BẠN' : finished ? 'TRẬN ĐẤU KẾT THÚC' : battle.phase === 'paused' ? 'ĐÃ TẠM DỪNG' : 'ĐỐI THỦ ĐANG HÀNH ĐỘNG'}</span><button className="control-button" onClick={onToggleAuto} disabled={finished}>{battle.auto ? '⏹ Tự động' : '▶ Tự động'}</button><button className="control-button" onClick={onSpeedChange} disabled={finished}>⏩ {battle.speedMultiplier}x</button><button className="control-button" onClick={onPause} disabled={finished}>{battle.phase === 'paused' ? 'Tiếp tục' : '⏸ Dừng'}</button></div></div>
       <div className="turn-order"><span>THỨ TỰ TỐC ĐỘ</span>{[...battle.allies, ...battle.foes].filter((unit) => unit.currentHp > 0).sort((a, b) => b.speed - a.speed).map((unit) => <b className={unit.team} key={unit.id}>{unit.icon} {unit.speed}</b>)}</div>
-      <div className={`battle-stage effect-${effectType}`} key={latestLog}>
+      <div className={`battle-stage effect-${effectType} ${actor?.team === 'enemy' ? 'enemy-turn' : 'ally-turn'}`} key={latestLog}>
         <div className="stage-stars" aria-hidden="true"><i /><i /><i /><i /><i /><i /></div>
         <div className="stage-title"><span>✦</span> MA UYÊN · TẦNG 03 <span>✦</span></div>
         <div className="stage-team ally-stage">{battle.allies.map((unit, index) => <StageUnit key={unit.id} unit={unit} active={activeAlly?.id === unit.id} index={index} />)}</div>
-        <div className="stage-center"><div className="battle-sigil">☯</div><div className="stage-impact" /><div className="damage-pop">{latestLog.includes('gây') ? latestLog.match(/\d+/)?.[0] ?? '' : ''}</div><span className="stage-vs">VS</span></div>
+        <div className="stage-center"><img className="skill-effect-asset" src={effectAsset} alt="" aria-hidden="true" /><div className="battle-sigil">☯</div><div className="stage-impact" /><div className="damage-pop">{latestLog.includes('gây') ? latestLog.match(/\d+/)?.[0] ?? '' : ''}</div><span className="stage-vs">VS</span></div>
         <div className="stage-team enemy-stage">{battle.foes.map((unit, index) => <StageUnit key={unit.id} unit={unit} active={activeEnemy?.id === unit.id} index={index} />)}</div>
         <div className="battle-log stage-log" aria-live="polite">{battle.log.slice(0, 3).map((line, index) => <p key={`${line}-${index}`}>{line}</p>)}</div>
       </div>
