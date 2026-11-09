@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import './App.css'
 import { BattleView } from './components/BattleView'
 import { SpiritCard } from './components/SpiritCard'
 import { dungeonEnemies, initialSpirits, navigationTabs, type NavigationTab } from './data/gameData'
-import { createBattle, performAttack, performEnemyTurn } from './domain/battleEngine'
+import { createBattle, performAttack, performEnemyTurn, toggleBattlePaused } from './domain/battleEngine'
 import type { BattleState, BattleUnit } from './domain/gameTypes'
 
 function App() {
@@ -37,14 +37,27 @@ function App() {
     setActiveTab('Chiến Đấu')
   }
 
-  const attack = (attacker: BattleUnit) => {
+  const resolveAttack = useCallback((attacker: BattleUnit, skillType: 'basic' | 'active' | 'ultimate') => {
     if (!battle) return
-    const next = performAttack(battle, attacker.id)
+    if (battle.phase === 'paused') return
+    const next = performAttack(battle, attacker.id, skillType)
     setBattle(next)
     if (next.phase === 'enemy') {
-      window.setTimeout(() => setBattle((current) => current ? performEnemyTurn(current) : current), 350)
+      window.setTimeout(() => setBattle((current) => current ? performEnemyTurn(current) : current), 700 / next.speedMultiplier)
     }
-  }
+  }, [battle])
+
+  const toggleAuto = () => setBattle((current) => current ? { ...current, auto: !current.auto } : current)
+  const changeSpeed = () => setBattle((current) => current ? { ...current, speedMultiplier: current.speedMultiplier === 3 ? 1 : (current.speedMultiplier + 1) as 1 | 2 | 3 } : current)
+  const togglePause = () => setBattle((current) => current ? toggleBattlePaused(current) : current)
+
+  useEffect(() => {
+    if (!battle?.auto || battle.phase !== 'player') return
+    const attacker = battle.allies.find((unit) => unit.currentHp > 0)
+    if (!attacker) return
+    const timer = window.setTimeout(() => resolveAttack(attacker, 'active'), 500 / battle.speedMultiplier)
+    return () => window.clearTimeout(timer)
+  }, [battle, resolveAttack])
 
   if (!ready) {
     return <main className="loading-screen"><div className="loading-seal">☯</div><p>Đang khai mở sơn môn...</p><div className="loading-track"><i /></div></main>
@@ -62,7 +75,7 @@ function App() {
         <div className="clan-stats"><span><small>CẤP GIA TỘC</small><b>18</b></span><span><small>LINH THẠCH</small><b>2,840</b></span><span><small>CHIẾN LỰC</small><b>{collectionPower.toLocaleString()}</b></span></div>
       </section>
       <nav className="tabs" aria-label="Điều hướng game">{navigationTabs.map((tab) => <button key={tab} className={activeTab === tab ? 'active' : ''} onClick={() => setActiveTab(tab)}>{tab}</button>)}</nav>
-      {activeTab === 'Chiến Đấu' && battle ? <BattleView battle={battle} onAttack={attack} /> : (
+      {activeTab === 'Chiến Đấu' && battle ? <BattleView battle={battle} onAttack={(unit) => resolveAttack(unit, 'active')} onSkill={resolveAttack} onPause={togglePause} onToggleAuto={toggleAuto} onSpeedChange={changeSpeed} /> : (
         <section className="content-grid fade-in">
           <div className="main-column">
             <div className="section-heading"><div><p className="eyebrow">LINH THÚ BẢN MỆNH</p><h2>Đội hình xuất chiến</h2></div><button className="text-button" onClick={() => setActiveTab('Linh Thú')}>Xem tất cả →</button></div>
