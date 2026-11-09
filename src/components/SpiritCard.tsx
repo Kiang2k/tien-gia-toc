@@ -8,7 +8,7 @@ export function SpiritCard({ spirit }: SpiritCardProps) {
   return (
     <article className="spirit-card">
       <div className="spirit-art">
-        <span aria-hidden="true">{spirit.icon}</span>
+        <span aria-hidden="true">{spirit.image}</span>
         <label>{spirit.rarity}</label>
       </div>
       <div className="spirit-info">

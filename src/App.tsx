@@ -2,18 +2,21 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import './App.css'
 import { BattleView } from './components/BattleView'
 import { SpiritCard } from './components/SpiritCard'
-import { dungeonEnemies, initialSpirits, navigationTabs, type NavigationTab } from './data/gameData'
+import { SpiritCollection } from './components/SpiritCollection'
+import { dungeonEnemies, navigationTabs, type NavigationTab } from './data/gameData'
+import { collectionSpirits } from './data/spiritCollection'
 import { createBattle, performAttack, performEnemyTurn, toggleBattlePaused } from './domain/battleEngine'
-import type { BattleState, BattleUnit } from './domain/gameTypes'
+import type { BattleState, BattleUnit, OwnedSpirit } from './domain/gameTypes'
 
 function App() {
   const [activeTab, setActiveTab] = useState<NavigationTab>('Đại Điện')
   const [ready, setReady] = useState(false)
-  const [team] = useState(initialSpirits.slice(0, 4))
+  const [collection, setCollection] = useState<OwnedSpirit[]>(collectionSpirits)
   const [summonCount, setSummonCount] = useState(0)
   const [energy, setEnergy] = useState(38)
   const [battle, setBattle] = useState<BattleState | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  const team = useMemo(() => collection.slice(0, 4), [collection])
 
   useEffect(() => {
     const timer = window.setTimeout(() => setReady(true), 350)
@@ -75,7 +78,7 @@ function App() {
         <div className="clan-stats"><span><small>CẤP GIA TỘC</small><b>18</b></span><span><small>LINH THẠCH</small><b>2,840</b></span><span><small>CHIẾN LỰC</small><b>{collectionPower.toLocaleString()}</b></span></div>
       </section>
       <nav className="tabs" aria-label="Điều hướng game">{navigationTabs.map((tab) => <button key={tab} className={activeTab === tab ? 'active' : ''} onClick={() => setActiveTab(tab)}>{tab}</button>)}</nav>
-      {activeTab === 'Chiến Đấu' && battle ? <BattleView battle={battle} onAttack={(unit) => resolveAttack(unit, 'active')} onSkill={resolveAttack} onPause={togglePause} onToggleAuto={toggleAuto} onSpeedChange={changeSpeed} /> : (
+      {activeTab === 'Chiến Đấu' && battle ? <BattleView battle={battle} onAttack={(unit) => resolveAttack(unit, 'active')} onSkill={resolveAttack} onPause={togglePause} onToggleAuto={toggleAuto} onSpeedChange={changeSpeed} /> : activeTab === 'Linh Thú' ? <SpiritCollection spirits={collection} onChange={setCollection} /> : (
         <section className="content-grid fade-in">
           <div className="main-column">
             <div className="section-heading"><div><p className="eyebrow">LINH THÚ BẢN MỆNH</p><h2>Đội hình xuất chiến</h2></div><button className="text-button" onClick={() => setActiveTab('Linh Thú')}>Xem tất cả →</button></div>

@@ -15,6 +15,7 @@ export type Spirit = {
   element: Element
   rarity: Rarity
   icon: string
+  image: string
   role: string
   power: number
   hp: number
@@ -26,6 +27,16 @@ export type Spirit = {
   critDamage: number
   evasion: number
   skills: Array<{ type: SkillType; name: string; multiplier: number; effect?: StatusEffect }>
+}
+
+export type OwnedSpirit = Spirit & {
+  level: number
+  experience: number
+  experienceToNext: number
+  stars: 1 | 2 | 3 | 4 | 5 | 6
+  awakened: boolean
+  locked: boolean
+  favorite: boolean
 }
 
 export type BattleUnit = Spirit & {
